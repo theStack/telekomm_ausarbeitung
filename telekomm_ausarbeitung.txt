@@ -383,7 +383,31 @@ TODO
 		o *Gewicht* eines Codewortes gibt an, wieviele Einsen das Codewort enthält
 
 -> ARQ und FECC
-	TODO
+	o Automatic Repeat Request (ARQ)
+		wird ein Fehler Übertragung erkannt, so fordert der Empfänger über einen
+		Feedback-Kanal den fehlerhaften Datenblock erneut an; ist bei langsamen Links wie
+		Satellitenübertragung oft keine Option, hier benötigt man FECC
+		-> prinzipiell zwei Techniken, bei beiden wird Datenblock vom Sender erneut
+		übertragen, sofern dieser nicht innerhalb eines gewissen Time-Outs eine Rückmeldung
+		(weder positive noch negative) erhalten hat
+			=> stop and wait ARQ: jeder Datenblock wird vom Empfänger als positiv oder
+			   negativ bestätigt, bevor ein neuer Datenblock übertragen wird
+			=> continuous ARQ: Datenblöcke werden gesendet, ohne die empfängerseitige
+			   Bestätigung abzuwarten
+				o go-back-N: jeder Datenblock hat Sequenznummer N; jedes
+				  Quittungssignal enthält die Sequenznummer eines Datenblocks und
+				  bestätigt damit den Empfang aller Datenblöcke bis N-1; bei
+				  Time-Out oder einer negativen Quittierung werden alle Datenblöcke
+				  ab dem fehlerhaften erneut übertragen
+				o selective repeat: *nur* Datenblöcke mit negativer Quittierung bzw.
+				  Time-Out werden erneut übertragen; hier müssen die ankommenden
+				  Pakete eventuell umgeordnet werden, das ist bei go-back-N nicht
+				  nötig
+	o Forward Error Correction Coding (FECC)
+		mittels data check bits wird unter den Informationsbits Redundanz implementiert;
+		Nachteil: benötigte Zeit um die Nachrichten zusammenzusetzen und empfängerseitig zu
+		prüfen, Hardwarekomplexität ist heutzutage jedoch kein nennenswertes Problem mehr
+		(-> VLSI-Technologie)
 
 -> Schwelleneffekt bei der Bitfehlerwahrscheinlichkeit
 	Fundamentale Zusammenhänge:
