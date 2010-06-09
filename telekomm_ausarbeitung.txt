@@ -1,0 +1,473 @@
+************************************************************
+* Ausarbeitung zu "Einführung in die Telekommunikation VO" *
+*  by Sebastian Falbesoner <e0725433@student.tuwien.ac.at> *
+************************************************************
+
+Quellen:
+	- Folien vom SS2010
+	- Ausarbeitung von Matthias Neugschwandtner und Matthias Auchmann
+	  (http://tigerente.htu.tuwien.ac.at/mitaub/groupworks/tiki-mtb_link_details.php?idlinks=440)
+
+========== 1. Einleitung ==========
+-> generisches Modell
+	Quelle -> AAF -> +---------+ -> +----------+ ->
+                         |  CODEC  |    |   MODEM  |    Kanal
+        Senke  <- AV  <- +---------+ <- +----------+ <-
+
+
+	Quelle -> Anti-Aliasing-Filter -> Coder-Teil von CODEC -> Modulator-Teil von MODEM ->
+												Kanal
+	Senke <- Audio-Verstärker <- Decoder-Teil von CODEC <- Demodulator-Teil von MODEM <-
+
+
+	Coder besteht aus:
+		ADC:
+			o Abtastung (=> PAM)
+			o Quantisierung der abgetasteten Werte (=> "quantisierte" PAM)
+			o Zahl, welche eindeutig die Quantisierungsstufe (Amplitude) darstellt,
+			  binär codieren (=> PCM)
+		Quellkodierung: Entfernung von Redundanz
+		Verschlüsselung
+		Kanalkodierung: Gezieltes Hinzufügen von Redundanz
+
+	Modulator besteht aus:
+		Line-Coder, Impulsformung
+			o erzeugt aus dem Bitstrom ein *Basisbandsignal*
+			o Wichtig die Frage: "Wie formt man Impulse, sodass sie nahe der maximalen
+			  Symbolrate (Nyquist: 2*B Symbole/s) übertragen werden können?"
+		Modulator
+			o Ziel: Frequenzumsetzung und Filterung auf Übertragungsbandbreite
+			o erzeugt aus Basisbandsignal ein *Bandpasssignal* (durch Multiplikation mit
+			  einem Trägersignal)
+
+	Demodulator besteht aus:
+		Demodulator
+			o Bandpasssignal -> Basisbandsignal
+		Entzerrer
+		Matched Filter (MF): maximiert SNR vor der Entscheidungsstufe
+		Entscheider
+
+	Decoder besteht aus:
+		Kanaldecoder
+		Entschlüsseln
+		Quelldecoder
+		DAC:
+			o PCM Decoder
+			o Rekonstruktion Tiefpass
+
+	[Warum digitale Kommunikationssysteme?]
+		-> Einfache Informationsdarstellung durch Bits
+		-> Einfache Speicherung
+		-> Einfache Informationsverarbeitung (Quellkodierung, Komprimierung,
+		   Verschlüsselung, Kanalkodierung)
+		-> Einfache Signalverarbeitung (Abtasten, Quantisieren)
+		-> Robust gegen Amplitudenstörungen
+
+
+========== 2. Signale und Systeme ==========
+-> Energiedichtespektrum
+	Leistungsdichtespektrum eines periodischen Signals: G_1(f) = | V(f) |² / sqrt(2)
+	Energiedichtespektrum eines transienten Signals:    G_2(f) = | V(f) |²
+
+-> Autokorrelationsfunktion
+	Betrachtet man das Skalarprodukt eines Signals mit sich selbst, so bekommt man die
+	Autokorrelationsfunktion => die Autokorrelationsfunktion gibt die Ähnlichkeit eines Signals
+	mit einer zeitversetzten Kopie seiner selbst an
+	o Eigenschaften:
+		-> Autokorrelationsfunktion ist gerade
+		-> Maximumstelle der Autokorrelationsfunktion in 0
+
+-> Wiener-Kintchine Theorem
+	besagt, dass die spektrale Leistungsdichte eines "stationären Zufallsprozesses" die
+	Fourier-Transformation der korrespondierenden Autokorrelationsfunktionen ist
+
+-> Zufallssignale und AWGN
+	TODO
+
+-> Zentraler Grenzwertsatz
+	Addiert man zwei Zufallsvariablen zu einer neuen (d.h. X + Y = Z), so stellt sich die Frage
+	wie die aus dieser Addition hervorgehende Dichte p_z(z) aussieht. [Formeln]
+	Addiert man N stochastich unabhängige Zufallsvariablen, so hat die Summe eine
+	Dichtefunktion, die sich mit N -> unendlich der Gauß'schen Glockenkurve annähert.
+	Die Verteilung der Summe ist also für N -> unendlich normalverteilt.
+	Definition von den Folien:
+		[Die WDF einer Summe von N statistisch unabhängigen Zufallsvariablen nähert sich der
+		 Gauß'schen WDF unabhängig davon welche WDF die einzelnen Summanden haben]
+
+-> Rayleigh und Rice Verteilung
+	TODO
+
+-> Stationäre und Ergodische Zufallsprozesse
+	Stationärer Zufallsprozess:
+		o im engeren Sinne: Die statistischen Parameter sind *unabhängig* von der Zeit. Alle
+		  WDF's (Gemeinsame, Bedingte, Grenz) sind *gleich*.
+		o im weitesten Sinne:
+			[1] Mittelwert muss zeitunabhängig sein
+			[2] Korrelation hängt nur von der Zeitdifferenz (T = t_2 - t_1) ab
+	Ergodischer Zufallsprozesse:
+		o Scharmittelwert = Zeitmittelwert
+		o im engeren Sinne: Man benötigt nur *eine Musterfunktion*. Aus dieser bildet man
+		  die zweidimensionale Statistik derart, indem man jeweils 2 Werte, welche
+		  *konstanten Zeitabstand T* zueinander haben, zusammenfasst
+		o im weitesten Sinne: Wenn Gaußverteilte Zufallszahlen *wilkürlich* zu einem
+		  Zeitsignal zusammengesetzt werden. Die Umkehrung ist auch möglich.
+
+
+========== 3. Pulse-Code Modulation (PCM) ==========
+-> Abtasttheorem
+	"Nyquist-Theorem" bzw. "Shannon'sches Abtasttheorem"
+	-> Hat ein Signal keine Spektralkomponenten oberhalb einer Frequenz f_H, so kann es nach
+	   einer Abtastung in der Theorie dann rekonstruiert werden, wenn die Abtastfrequenz f_S
+	   mindestens doppelt soch wie f_H ist
+	=> f_S >= 2 * f_H
+	=> 2*f_H... "Nyquist-Frequenz"
+	=> wenn f_S > 2*f_H ... "Oversampling"
+	=> wenn f_S < 2*f_H ... "Undersampling"
+		-> in der Praxis muss Theorem etwas modifiziert werden, da ein Anti-Aliasing Filter
+		   keine unendlich steilen Flanken hat:
+		=> f_S >= 2.2 * f_H (reales Abtasten)
+
+-> PCM (Eigenschaften, Quantisierungsrauschen, Companded PCM, Rechenbeispiel)
+	-> Quantisierungsrauschen bei quantisierter PAM:
+		Quantisieren ist mit Qualitätsverlust verbunden, da das quantisierte Signal nicht
+		mehr dem Originalsignal entspricht. Der Unterschied zwischen dem letzteren ergibt
+		ein neues Zufallssignal, das *Quantisierungsrauschen*.
+		Maß für das Quantisierungsrauschen: 
+			S N_q R (signal to noise ratio)
+			(S N _q R)_peak -> maximal auftretender Wert von SNR
+		Bei linearer Quantisierung und ein Signal ohne Gleichanteil mit Gleichverteilung
+		berechnet man SNR folgendermaßen (M = Anzahl der Quantisierungsstufen):
+			S N_q R = M² - 1 = 20 log_10 (M) dB
+			(S N_q R)_peak = 3 M² = 4.8 + S N_q R dB
+	-> Pulse-Code Modulation:
+		nachdem PAM-Signal quantisiert wurde, kann man anstatt der Pulse selbst lediglich
+		Nummern, die die Höhe der Pulse angeben, übertragen (=> PCM). Bei M Amplitudenwerte
+		ist das Codewort n = ceil(ld M) Bit lang.
+		S N_q R hängt *nicht* von Kodierung ab und bleibt daher gleich, als Funktion von n:
+			S N_q R = (2^n)^2 -1
+			(S N_q R)_peak = 3(2^n)^2
+			Schätzwert für S N_q R --> 6 (n-1) dB
+		Nachteil von PCM:
+			o benötigt mehr Bandbreite als natives PAM-Signal, da mehr Pulse statt einem
+			  übertragen werden
+		Vorteil von PCM:
+			o jedoch können Spannungslevel bei PCM weitaus leichter unterschieden werden
+			  als bei PAM, PCM ist also weniger anfällig auf Rauschen
+	-> Companded PCM
+		Bei gewöhnlichen Signalen kann nicht davon ausgegangen werden, dass alle
+		Quantisierungslevel gleichmäßig genutzt werden, d.h. die Dichte des
+		Informationssignals gleichmäßig verteilt ist. Um Quantisierungsrauschen zu
+		minimieren ist es also sinnvoll, die Quantisierungslevel an den häufig genutzten
+		Stellen zu verdichten und an den weniger genutzten Stellen zu erweitern.
+		-> Diese nicht-lineare Quantisierung nennt man *Companding* (Signal wird mit
+		   nicht-linearer Amplitudencharakteristik komprimiert und dann das empfangene
+		   Signal mit inverser Charakteristik dekomprimiert)
+	-> Möglichkeiten zur Bandbreitenreduktion
+		o Delta PCM: statt Abtastwerte selbst wird nur die Differenz zum vorangegangenen
+		  Abtastwert übertragen; da Differenz überlicherweise kleiner ist als die
+		  tatsächlichen Abtastwerte (da nahe bei einanderliegende Abtastwerte üblicherweise
+		  korrelieren), sind kürzere Codewörter nötig
+		o Differentielles PCM (DPCM): macht sich ebenfalls die Korrelation benachbarter
+		  Abtastwerte zunutze und benutzt einen Algorithmus um zukünftige Abtastwerte
+		  vorauszusagen
+		o Adaptives DPCM (ADPCM): Koeffizienten bzw. Gewichte der Vorhersage-Einheit nicht
+		  fix festgelegt, sondern werden entsprechend der sich ändernden Signalstatistik des
+		  Informationssignals angepasst
+		o Deltamodulation: DPCM-System, wobei Auflösung des Quantisierers auf 1 Bit
+		  reduziert wird
+
+
+========== 4. Basisbandübertragung und Detektion binärer Symbole in AWGN ==========
+TODO
+
+
+========== 5. Optimale Filterung ==========
+-> Optimale Filterung
+	wird eingesetzt um folgende Aufgaben zu erfüllen:
+	o (im Sender) - Impulsformung für optimale Übertragung
+		-> Ziel: Bandbreite des Kanalsignals zu minimieren
+	o (im Empfänger) - Filterung für optimale Detektion
+		-> Ziel: SNR zum Entscheidungszeitpunkt zu minimieren
+	o (im Empfänger) - Filter zur Entzerrung der Kanalimpulsantwort
+		-> Ziel: Verzerrungen verursacht durch den Kanal rückgängig machen
+
+-> Intersymbolinterferenz (ISI)
+	Signalisierung mit Rechteckimpulsen hat theoretisch unendliche Bandbreite und ist deshalb
+	praktisch nicht realisierbar. Wenn man jedoch ein gewisses Maß an Verzerrung in Kauf nimmt,
+	können "Rechteckimpulse" auch über Kanäle mit begrenzter Bandbreite übertragen werden.
+	Ist die Verzerrung allerdings zu stark, so überlappen sich die Pulse im Zeitbereich und die
+	Spannung zum Abtastzeitpunkt kann nicht nur vom gewünschten, sondern zusätzlich von einem
+	oder mehreren vorigen Pulsen herrühren;
+	=> dieses Verschmieren eines Pulses in einen anderen wird als Intersymbolinterferenz (ISI)
+	   bezeichnet
+	-> Performance digitaler Kommunikation wird allerdings nur zum Abtast- bzw.
+	   Entscheidungszeitpunkt von der ISI beeinträchtigt. Außerhalb des Entscheidungszeitpunktes
+	   ist die ISI irrelevant
+	-> Definition ISI-freies Signal:
+		Signal, das zu allen Abtastzeitpunkten bis auf einen Zeitpunkt t_n einen
+		Nulldurchgang hat; das n-te Zeichen kann dann zum Zeitpunkt t_n abgetastet werden
+		und stört an den anderen Abtastzeitpunkten t_j (wobei j != n) nicht.
+		o Bedingung mathematisch: v(t) sum (n=-inf...+inf) delta(t - n T_0) = v(0) delta(t)
+		o sinc-Puls erfüllt in idealer Weise die geforderten Bedingungen! jedoch:
+			- sinc-Impulse sind physikalisch nicht realisierbar
+			- Nebenkeulen der sinc-Impulse nehmen nur langsam ab (mit 1/t)
+			- Abhilfe:
+				Beaufschlage sinc-Impulse mit einer Dämpfungsfunktion
+				=> Nullstellen bleiben erhalten, aber Nullstellensteilheit nimmt ab
+	-> Definition ISI-freies Signal (Frequenzaussage):
+		Signal v(t) hat ein Amplitudenspektrum V(f) mit ungerader Symmetrie bez. f_x
+	-> Definition ISI-freies Signal (Frequenzaussage):
+		Amplitudenspektrum V(f) eines ISI freien Signals v(t) wiederholt sich periodisch
+		entlang der Frequenzachse mit Periode 1/T_0 und deren Summe ist eine Konstante
+		v(0)*T_0
+
+-> Nyquist-Filter / Raised Cosine Filter
+	-> Nyquist-Filter sind Filter deren Impulsantworten ISI-frei sind (erzeugen also aus
+	   Impulsstrom einen ISI-freien Symbolstrom)
+		o Konstruktion:
+			zu Übertragungsfunktion H(f) eines rechteckigen, linearen Tiefpasses
+			(Rechteckfilter) eine bezüglich der Eckfrequenz f_x unsymmetrische
+			Übertragungsfunktion addieren => in Impulsantwort bleiben Nullstellen
+			(sinc(2f_xt)) erhalten
+	-> Raised Cosine Filter
+		wichtige Untergruppe der Nyquist-Filter
+		=> Roll-Off entspricht einer halben Cosinus-Funktion
+
+-> Pulsfilterung für optimales Empfangen
+	Ziel: verlässlichere Entscheidungen treffen zu können als bei der Center Point Detection;
+	durch Mehrheitsentscheidungen sind Einzelfehler korrigierbar
+	(oder, andere Möglichkeit: n Abtastwerte summieren und mit dem n-fachen des Schwellwerts
+	vergleichen)
+	-> erweitert man die Mehrheitsentscheidung (diskret) auf unendlich viele
+	   Entscheidungsvariablen, so gelangt man zur Integration (analog) über die Symboldauer T_0 
+	   (Entscheidungsintervall)
+	=> "Integrate and Dump Detector (I&D)"
+	   I&D-Detektor gehört zu den Matched Filter Detektoren
+	   Vorteil: Integrier-Schaltungen mit nachfolgendem Vergleich sind leicht in Hardware zu
+	   implementieren (Kondensator und Komparator)
+
+-> Matched Filter (wozu wird er verwendet, Übertragungsfunktion aufschreiben)
+	dient dazu, das SNR *vor* der Entscheidungsstufe zu maximieren;
+	um aber die Übertragungsfunktion des MF bestimmen zu können, benötigt man eine geeignete
+	Beschreibung der beteiligten Signale, welche es gestattet das SNR zu erkennen
+		[Skizze Eingang s(t)+n(t) -> MF -> z(t) -> Abtaster -> z -> Entscheider -> D]
+	-> *Amplitudenantwort* des MF:
+	   betrachtet man Energiedichtespektrum eines Pulses verglichen mit dem
+	   Leistungsdichtespektrum weißen Rauschens (eine konstante Linie), so sieht man, dass
+	   manche Frequenzbänder des Pulses einen hohen und manche einen niedrigen
+	   Signalrauschabstand haben. Die Frequenzbänder mit hohem SNR sollten einen höheren
+	   Einfluss im Entscheidungsprozess haben, als diese mit niedrigem SNR.
+	   => Umstand führt auf Bilden einer gewichteten Summe der einzelnen Frequenzband Rausch-
+	      und Signalenergien, wobei die Gewichte direkt proportional zum SNR des jeweiligen
+	      Frequenzbandes sind
+	   -> Leistungsdichtespektrum des Rauschens ist konstant, also SNR proportional zu |V(f)|²
+	   -> Leistung bzw. Energie, die von Filter weitergegeben wird, muss proportional zu |H(f)|²
+	      sein
+	   => Quadrat der Amplitudenantwort eines MF muss formgleich zum Energiedichtespektrum des
+	      Pulses sein, also
+	      		|H(f)|² = k² |V(f)|² (Betragsbedingung)
+	      für eine Konstante k
+	-> *Phasenantwort* des MF:
+	   -> MF zerlegt das Eingangssignal in seine spektralen Komponenten und ordnet diese so um,
+	      dass zum Entscheidungszeitpunkt ein Maximum auftritt (konstruktive Überlagerung)
+	   -> Konstruktive Überlagerung tritt dann auf, wenn die Phasen des Eingangssignals negiert
+	      werden (Nullphasenspektrum)
+	   -> Damit das Filter kausal wird, muss noch die Verarbeitungszeit eines Symbols investiert
+	      werden, bis das Ergebnis feststeht (lineare Phase)
+	   =>
+			phi(f) = -phi_v(f)-2 pi f T_0 (Phasenbedingung)
+	=> Übertragungsfunktion des MF (ergibt sich aus den beiden Bedingungen):
+			H(f) = k * V(F)^* e^(-j omega T_0)
+	-> Impulsantwort des MF:
+		Frequenzantwort (also Übertragungsfunktion H(f)) invers Fourier transformieren:
+			h(t) = k v* (T_0 - t)
+		=> d.h. Impulsantwort eines Matched Filter ist die zeitumgekehrte Version des
+		   erwarteten Pulses, die zusätzlich um die Pulsdauer verzögert ist (-> muss sie
+		   auch, sonst wäre Filter nicht kausal)
+	-> Ausgangssignal des MF:
+		ergibt sich durch Faltung der Impulsantwort mit dem Eingangssignal:
+			z(t) = h(t) * v(t)
+		(WH: Faltung besteht aus dem Umkehren einer Funktion und der Zeitverschiebung des
+		     Resultats multipliziert mit der anderen Funktion, und Faltung ist kommutativ)
+		-> Impulsantwort ist bereits eine umgekehrte Kopie des erwarteten Eingangssignals
+		-> Faltung erfordert noch eine Umkehrung -> Ausgangssignal ist durch das Integral
+		   über das Produkt des Eingangssignals mit umgekehrter Impulsantwort gegeben
+		-> in dem Fall, dass Eingangssignal der erwartete Puls ist, multipliziert man unter
+		   dem Integral das Eingangssignal mit sich selbst
+		=> Ausgangssignal ist für das erwartete Signal also die Autokorrelation des
+		   Eingangssignals (bis auf eine multiplikative Konstante und eine Zeitverzögerung
+		   T_0)
+	
+
+========== 6. Quellkodierung ==========
+-> Informationsgehalt
+	steht im Bezug zur Wahrscheinlichkeit: je wahrscheinlicher es ist, dass eine gewisse
+	Nachricht übertragen wird, desto niedriger ist deren Informationsgehalt;
+	Anforderungen:
+	-> 1. Informationsgehalt sollte immer positive Größe sein
+	-> 2. Informationsgehalt sollte also mit steigender Nachrichtenwahrscheinlichkeit P(m) abnehmen
+	   und für eine Wahrscheinlichkeit von P(m)=1 (Grenzfall) 0 betragen
+	-> 3. Informationsgehalt zweier Nachrichten sollte die Summe des Informationsgehaltes der
+	   einzelnen Nachrichten sein ("Additivitätseigenschaft" der Information)
+	-> Wahrscheinlichkeit der gesamten Nachricht => Produkt der Wahrscheinlichkeiten der
+	   einzelnen Nachrichten, d.h. Informationsgehalt muss summiert werden, wenn
+	   Wahrscheinlichkeiten multipliziert werden 	
+	==> diese Anforderungen erfüllt der Logarithmus => I_m = - log P(m)
+	--> jede Logarithmusfunktion erfüllt die geforderten Bedingungen, d.h es ist gleichgültig
+	    welche man verwendet; üblich ist der ld, weil dafür der Informationsgehalt in "Bit"
+	    angegeben werden kann => I_m = - ld P(m)
+
+-> Entropie
+	(allg.: Maß für die Regellosigkeit eines Ereignisses als Ergebnis eines Zufallsexperiments)
+	ist die mittlere Information, die ein Symbolalphabet beinhaltet, also der Erwartungswert des
+	Informationsgehaltes eines Alphabetes
+	-> ist die Summe der Informationsgehalte der jeweiligen Symbole, jeweils multipliziert mit
+	   der Auftrittswahrscheinlichkeit
+	-> ist bei einem Alphabet der Größe 2 (binäre Quelle), und unter der Annahme, dass alle
+	   Symbole statistisch unabhängig sind: H = - Summe (m=1...2) P(m) * log_2 P(m)
+	-> Entropie erreicht ihr Maximum wenn alle Symbole gleichwahrscheinlich sind (bei einer
+	   binären Quelle also -> p = 1/2, "Faire Quelle")
+	-> hat irgendeine Nachricht eine Wahrscheinlichkeit von 1, so ist die Entropie 0
+
+-> Arten von Quellkodierung
+	Quellkodierung = Werkzeug, welches die Erkenntnisse aus der Informationstheorie umsetzt um
+	die Effizienz der Informationsübertragung zu erhöhen
+	-> Quellkoderiung ändert *nicht* die Entropie der Quelle, Entropie ist *Fundmentale Größe
+	   der Quelle*, ABER Quellkodierung liefert eine höhere Entropie in den Codewörtern als die
+	   Entropie der Quellsymbole ist, d.h. Kanal wird dadurch nicht mit Symbolen belastet,
+	   welche einen geingeren Informationsgehalt besitzen
+	-> Quellkodierung reduziert die Redundanz der Quelle *vor* der Übertragung
+	-> Effizienz eines Codes kann gesteigert werden, indem man öfters vorkommenden Symbolen
+	   weniger Bits zuordnet als jenen Symbolen welche weniger oft vorkommen, d.h. ein
+	   effizienter Code, für die gleiche Information, mit weniger Binärstellen im Mittel aus
+	-> Problem für Codewörter unterschiedlicher Länge: sie müssen *eindeutig decodierbar* sein
+		Eigenschaften:
+			o Eindeutige Decodierung: Wenn A durch 0 und B durch 00 repräsentiert wird,
+			  lässt sich die Folge 0000 nicht eindeutig dekodieren (ABA, AAAA, BB...?)
+			o Fortlaufende Decodierung: kein vollständiges Codewort darf Präfix eines
+			  größeren Codeworts sein
+	-> Beispiele für Quellkodierung
+		o Morse Alphabet: 'e' kommt am häufigsten vor, deshalb wird e ein "." (kürzestes
+		  Symbol) zugeordnet
+		o Fax 
+		o Vocoder beseitigen die Redundanz in unserer Sprache (4 formierende Signalformen,
+		  "formants")
+		o Stringkodierung
+
+-> Huffman-Kodierung
+	Huffman-Code ist präfix-frei und eindeutig, optimal hinsichtlich Code-Effizienz
+	Kodierung erfolgt in zwei Schritten:
+		o alle Symbole, geordnet abnehmenden Wahrscheinlichkeiten, untereinander schreiben;
+		  die letzten beiden zusammenfassen und in nächste Spalte einsortieren, so
+		  fortfahren, bis nur noch zwei Symbole vorhanden sind - den letzten beiden "0" und
+		  "1" zuordnen
+		o Klammern derart beschriften, indem eine 0 oben und eine 1 unten steht.
+		  Huffman-Code ergibt sich wie folgt
+			-> vom Symbol aus waagrecht nach hinten gehen bis man auf Pfeile trifft,
+			   diesen folgen und der Klammer bis zum Ende folgen
+			-> Anzahl der Klammern ergibt die Anzahl der Stellen des Codes
+			-> den Code von hinten beginnend lesen
+
+
+========== 7. Kanalkodierung ==========
+-> Kanalkodierung (Überblick, Sinn, Formeln, Gütekriterien, Kodierungsarten)
+	dient dazu, Fehler in der Übertragung der Symbole zu entdecken und eventuell auch zu
+	korrigieren - gezieltes Hinzufügen von redundanter Information; 
+	-> zwei Messgrößen für die Fehlerperformance:
+		o BER (Bit Error Rate): mittlere Rate zu der Fehler auftreten -> P_b R_b
+			(wobei R_b Bitübertragungsrate des Kanals ist)
+		o P_b: bekannte Wahrscheinlichkeit eines Bitfehlers
+	-> Gütekriterien
+		o *Hammingdistanz* gibt an, um wieviele Bits sich zwei Codewörter unterscheiden, d.h.
+		  wie leicht es ist ein Codewort falsch als ein anderes zu interpretieren
+		o *Gewicht* eines Codewortes gibt an, wieviele Einsen das Codewort enthält
+
+-> ARQ und FECC
+	TODO
+
+-> Schwelleneffekt bei der Bitfehlerwahrscheinlichkeit
+	Fundamentale Zusammenhänge:
+		=> Leistungseffizienz: minimales Signalstörleistungsverhältnis für eine hinreichend
+		   zuverlässige digitale Übertragung
+		
+	E_b / N_0 = Äquivalente mittlere Signalenergie je Bit übertragener Information /
+		Einseitige spektrale Rauschleistungsdichte
+		(wobei E... Epsilon)
+	[Diagramm auf Foliensatz Kanalkodierung Seite 22]
+	-> Verursacht durch das schlechte SNR baut der Decoder, beim Versuch die Fehler zu
+	   korrigieren, mehr Fehler ein als ursprünglich vorhanden waren
+
+-> n-k Blockcodes
+	Blockkodierer (relevant im Bereich der Kanalkodierung) nimmt ein k-stelliges
+	Informationswort und macht daraus ein n-stelliges kodiertes Codewort
+		-> n-stelliges Codewort besteht daher aus k Informationsbits und (n-k) redundanter
+		   Paritätsbits (d.h. n ist immer größer als k, n > k)
+		-> *Rate* oder *Effizienz* des Codes -> R = k/n
+
+-> Lineare Gruppencodes
+	stellen die größte Gruppe der Blockcodes dar
+	=> Codewörter eines linearen Gruppencodes haben eine direkte Beziehung mit den Elementen
+	einer mathematischen Gruppe
+	-> d.h. durch Modulo-2-Addition zweier Codewörter ergibt sich immer ein anderes Codewort,
+	   d.h. die Gruppe ist abgeschlossen
+
+-> Dekoderstrategien für lineare Blockcodes
+	[1] Neares Neighbour
+	[2] Maximum-Likelihood
+
+-> Faltungscodes
+	Untergruppe von Gruppencodes, durch zyklische Eigenschaft kann das *Nullwort* nicht
+	verarbeitet werden
+	Eigenschaften:
+	1.] mathematische Struktur erlaubt Codes zu erzeugen, welche eine bessere
+	Korrektureigenschaft besitzen
+	2.] Die Codes können in einfache Hardwarestruktur umgesetzt werden: Schieberegister und EXOR
+	3.] alle Codewörter gehen durch zyklische Verschiebung hervor
+	4.] zyklische Codes werden durch Polynome erzeugt
+
+-> Bitfehlerwahrscheinlichkeit vor und nach der Kanalkodierung
+	TODO
+
+-> Shannon'sches Kapazitätstheorem
+	(zu finden in Wikipedia unter "Shannon-Hartley-Gesetz")
+	=> für einen AWGN-Kanal existiert immer ein Kodierverfahren, sodass eine fehlerfreie
+	   Übertragung möglich ist, solange die Datenrate R_b kleiner als die Kanalkapazität C
+	   bleibt
+		C = B * ld (1 + S/n) = B * ld (1 + S / (N_0 * B))
+	C... maximal mögliche Bitrate
+	S... pro Symbol aufgewendete Leistung
+	N... spektral konstante Rauschleistung
+	N_0. Rauschleistungsdichte
+	-> Theorem gibt jedoch keine Auskunft darüber, wie das Kodierverfahren gestaltet sein muss
+
+
+========== 8. Modulation mit einem sinusförmigen Trägersignal ==========
+-> OOK, einfache Detektion (Hüllkurvendetektor)
+	TODO
+
+-> QSK und OQSK (bezeichnen, Unterschied)
+	TODO
+
+-> QPSK
+	TODO
+
+-> MSK
+	TODO
+
+
+========== 9. Rauschen und Link-Budget ==========
+TODO
+
+
+========== 10. Mobile Kommunikation ==========
+-> Schnelle und langsame Schwunderscheinungen
+	TODO
+
+-> Störungen und Gegenmaßnahmen
+	TODO
+
+-> CDMA
+	TODO
+
+-> TDMA
+	TODO
