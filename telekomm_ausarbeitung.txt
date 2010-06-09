@@ -442,6 +442,49 @@ TODO
 
 
 ========== 8. Modulation mit einem sinusförmigen Trägersignal ==========
+-> Trägermodulation
+	bewirkt eine *Frequenzumsetzung*, wobei die Information des Basisbandsignals dem
+	Trägersignal eindeutig umkehrbar aufgeprägt wird
+		Basisbandlage (BB): Spektrum von -f_B ... +f_B (Zentrum 0)
+		Bandpasslage (BP): Spektrum von -f_B + f_0 ... +f_B + f_0 (Zentrum f_0)
+		o UP-Conversion: Verschiebung Spektrum von BB-Lage in BP-Lage (-> Modulation)
+		o Down-Conversion: Verschiebung Spektrum von BP-Lage in BB-Lage (-> Demodulation)
+	Vorteile / Ziele die man damit erreichen kann:
+		-> Signale können an Charakteristika des Übertragungskanals besser angepasst werden
+		-> Störungen in BP-Lage geringer
+		-> Funkübertragung möglich
+		-> Verwendung von FDMA möglich; für jeden Teilnehmer eigenes Frequenzband
+		-> Verwendung von effizienten Antennen möglich (mit kleinen Abmessungen)
+		-> Filter sind nur in bestimmten Frequenzbereichen ökonomisch herzustellen
+	Wie funktioniert die UP-Conversion?
+		-> Verschieben eines Spektrums D(f) mit Zentrum f=0 in eine neue Lage mit Zentrum
+		   f=f_0 erreicht man durch Faltung von D(f) einem Dirak an der Stelle f_0
+		-> Ein um den Ursprung symmetrisches Dirakpaar entspricht einer Kosinusfunktion
+		-> Frequenzverschiebung wurde durch Faltung erreicht, Faltung entspricht im
+		   Zeitbereich einer Multiplikation, also
+		=> UP-Conversion durch Multiplikation des Basisbandsignals mit einer Kosinusfunktion
+			g(t) = d(t) * cos(2 pi f_0 t) [* = in dem Fall Multiplikation]
+
+-> Einteilung der BP-Modulation
+	basiert auf den Möglichkeiten die Information einem sinusförmigen Trägersignal in
+	eindeutiger Weise aufzuprägen; auf welche Eigenschaft des Trägersignals wird Information
+	abgebildet?
+		o auf Amplitude => Amplitude Shift Keying (ASK)
+		o auf Frequenz  => Frequency Shift Keying (FSK)
+		o auf Phase     => Phase Shift Keying (PSK)
+	-> wird die Information binär übertragen, so benötigt man zur Unterscheidung nur zwei
+	   Trägerzustände => BASK, BFSK, BPSK (B... "binary")
+	-> werden die Bits zu Symbolen zusammengefasst und existieren M solcher Symbole, so muss der
+	   Träger M eindeutige Unterscheidungsmerkmale besitzen => MASK, MFSK, MPSK
+
+-> Gütekriterien
+	Spektrale Effizienz:
+		ist ein Maß für den Informationstransfer pro eingesetztem Herz Bandbreite
+			n_S = (R_s * H) / B .... [Bit / s / Hz]
+	Leistungseffizienz:
+		ist ein Maß für die benötigte Signalleistung um eine vorgegebene SEP zu erreichen
+			TODO
+
 -> OOK, einfache Detektion (Hüllkurvendetektor)
 	TODO
 
