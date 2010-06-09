@@ -440,6 +440,7 @@ TODO
 	[2] Maximum-Likelihood
 
 -> Faltungscodes
+	-> Ausgabedaten = Eingabedaten * Impulsantwort des Kodierers (* = Faltung)
 	Untergruppe von Gruppencodes, durch zyklische Eigenschaft kann das *Nullwort* nicht
 	verarbeitet werden
 	Eigenschaften:
@@ -509,8 +510,38 @@ TODO
 		ist ein Maß für die benötigte Signalleistung um eine vorgegebene SEP zu erreichen
 			TODO
 
--> OOK, einfache Detektion (Hüllkurvendetektor)
-	TODO
+-> BASK, OOK, Erkennung von OOK-Signalen
+	=> Modulation durch Änderung der Amplitude
+	wenn bei BASK eine der beiden Amplituden auf Nullpegel festgelegt wird, spricht man von
+	On-Off Keying (OOK); Realisierung mittels einfachem Schalter, der das Trägersignal ein- und
+	ausschaltet, oder als Multiplikator, der den Träger mit einem unipolaren
+	*Basisband*-OOK-Signal multipliziert -> das Spektrum des Basisbandsignals wird durch die IF
+	Modulation rund um die Trägerfrequenz f_c reproduziert
+	=> Erkennung von OOK-Signalen kann grundsätzlich auf zwei Arten erfolgen:
+		o koheränter Empfang: Phasenlage des empfangenen Signals ist von Bedeutung; Einsatz
+		  von Matched Filter oder Korrelatoren vor dem Sampling, da diese ja von der Phase
+		  abhängen. Verglichen wird jeweils mit dem Trägersignal, also der Sinusschwingung
+		o inkoheränter Empfang: Phasenlage des empfangenen Signals ist nicht von Bedeutung;
+		  Einsatz von Hüllkurvendetektor gefolgt von centre point Abtastung oder I+D
+		  Entscheidung. Alternativ: Umsetzung mit zwei Korrelationskanälen, einer für
+		  Inphase und anderer für Quadraturkomponenten
+	Bandbreite eines BASK-Signals: B = 2f_0
+
+-> BPSK, PRK, Erkennung von PRK-Signalen
+	=> Modulation durch Änderung der Phase
+	sind die Zeiger von null und eins bei BPSK antipodal (d.h. um 180° verschieden), so spricht
+	man von Phase Reversal Keying (PRK)
+	zur Erkennung sind natürlich nur koheränte Empfänger geeignet, wobei bei PRK nur ein Matched
+	Filter/Korrelator nötig ist, denn bei 180° Phasenverschiebung liefert der Korrelator/Filter
+	kE für 1 und -kE für 0
+	Bandbreite eines BPSK-Signals: B = 2f_0
+
+-> BFSK
+	=> Modulation durch Änderung der Frequenz
+	in der Praxis meist mittels numerisch gesteuerten Oszillator implementiert; zum Empfang kann
+	sowohl koheränter als auch inkoheränter Empfänger benutzt werden. Man braucht auf jeden Fall
+	für jede der beiden Frequenzen einen eigenen Empfänger (z.B. zwei Korrelatoren)
+	Bandbreite eines BFSK-Signals: B = f_2 - f_1 + 2f_0, wobei f_0 = 1/T_0
 
 -> QSK und OQSK (bezeichnen, Unterschied)
 	TODO
