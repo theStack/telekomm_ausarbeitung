@@ -543,10 +543,14 @@ TODO
 	für jede der beiden Frequenzen einen eigenen Empfänger (z.B. zwei Korrelatoren)
 	Bandbreite eines BFSK-Signals: B = f_2 - f_1 + 2f_0, wobei f_0 = 1/T_0
 
--> QSK und OQSK (bezeichnen, Unterschied)
-	TODO
+-> Weitere Varianten von PSK, mit mehr als nur 2 Symbolen
+	=> M-symbol PSK (MPSK)
+	=> Amplitude Phase Keying (APK): (M)ASK + MPSK
+	=> Quadrature Phase Shift Keying (QPSK)
+	=> Offset QPSK (OQPSK)
+	=> Minumum Shift Keying (MSK): modifizierte Form von OQPSK
 
--> QPSK
+-> QPSK und OQPSK (bezeichnen, Unterschied)
 	TODO
 
 -> MSK
